@@ -1,7 +1,7 @@
 import cv2
 
 class ZoomedImage:
-    def __init__(self, target_size, margin_percent=12, smoothing_factor=0.07, threshold=35, frame_shape=None):
+    def __init__(self, target_size, margin_percent=5, smoothing_factor=0.1, threshold=20, frame_shape=None):
         self.target_size = target_size
         self.margin_percent = margin_percent
         self.smoothing_factor = smoothing_factor
