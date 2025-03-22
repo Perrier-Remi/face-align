@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "face-align"
+version = "0.1.0"
+description = ""
+authors = ["r <rperrrr@pm.me>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+opencv-python = "^4.11.0.86"
+ultralytics = "^8.3.94"
+
+[tool.poetry.scripts]
+face-align = "face_align.main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
