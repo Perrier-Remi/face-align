@@ -1,15 +1,13 @@
 # Face Align
 
-A real-time face tracking and auto-zooming application that smoothly keeps faces centered in frame using YOLOv8. The application provides smooth transitions and intelligent tracking to keep faces well-framed during video calls or recordings.
+A real-time face tracking and auto-zooming application that smoothly keeps faces centered in frame using YOLOv8. The application provides smooth transitions and intelligent tracking to keep faces well-framed during video calls or recordings. Inspired by Apple's Center Stage feature found in modern MacBooks and iPads.
 
 ## Features
 
 - Real-time face detection using YOLOv8
 - Smooth camera transitions with configurable parameters
-- Automatic zoom and center on detected faces
+- Automatic zoom and center on detected faces (similar to Apple's Center Stage)
 - Smart movement thresholding to prevent jitter
-- Efficient frame processing with reduced detection frequency
-- Maintains consistent aspect ratio
 
 ## Installation
 
@@ -40,8 +38,7 @@ Run the application:
 poetry run face_align
 ```
 
-
-The application will open your webcam feed and automatically start tracking and center your face.
+The application will open your webcam feed and automatically start tracking and center your face, similar to how Center Stage works on Apple devices.
 
 Controls:
 - Press 'q' or 'Esc' to quit
