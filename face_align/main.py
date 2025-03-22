@@ -2,11 +2,26 @@ import cv2
 from ultralytics import YOLO
 from face_align.zoomedImage import ZoomedImage
 import os
+import requests
+from pathlib import Path
+
+def download_model(url, model_path):
+    """Download the model if it doesn't exist."""
+    if not os.path.exists(model_path):
+        print(f"Downloading model to {model_path}...")
+        response = requests.get(url)
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        with open(model_path, 'wb') as f:
+            f.write(response.content)
+        print("Download complete!")
+
 def process_frame_with_detection(frame, model, zoomed_image, last_box):
-    results = model(frame, classes=[0], conf=0.5)
+    # No need for classes parameter as YOLOv8-face only detects faces
+    results = model(frame, conf=0.5)
     result = results[0]
     
     if len(result.boxes) > 0:
+        # Get the face with highest confidence
         box = result.boxes[0].xyxy[0]
         last_box = box
 
@@ -14,9 +29,12 @@ def process_frame_with_detection(frame, model, zoomed_image, last_box):
     return zoomed_frame, last_box
 
 def main():
-    # Load YOLOv8 model from models directory
-    model_path = 'models/yolov8n.pt'
-    os.makedirs('models', exist_ok=True)
+    # Setup model paths and URLs
+    model_path = Path('models/yolov8n.pt')
+    model_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt"
+    
+    # Ensure model directory exists and download model if needed
+    download_model(model_url, model_path)
     model = YOLO(model_path)
 
     # Initialize video capture
