@@ -12,6 +12,8 @@ def process_frame_with_detection(frame, model, zoomed_image, last_box):
         # Get the face with highest confidence
         box = result.boxes[0].xyxy[0]
         last_box = box
+    else:
+        last_box = None  # Reset last_box when no face is detected
 
     zoomed_frame = zoomed_image.process_frame(frame, last_box)
     return zoomed_frame, last_box, box if len(result.boxes) > 0 else None

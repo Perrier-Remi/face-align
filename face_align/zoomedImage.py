@@ -91,6 +91,20 @@ class ZoomedImage:
             self.frame_shape = frame.shape
         
         if box is None:
+            # If we were previously tracking a face, smoothly transition back
+            if self.current_crop is not None:
+                # Get full frame coordinates
+                full_frame_crop = (0, 0, self.frame_shape[1], self.frame_shape[0])
+                # Smooth transition to full frame
+                crop_x1, crop_y1, crop_x2, crop_y2 = self.smooth_crop_coordinates(full_frame_crop)
+                cropped = frame[crop_y1:crop_y2, crop_x1:crop_x2]
+                resized = cv2.resize(cropped, self.target_size)
+                # Reset current crop if we've basically reached full frame
+                if abs(crop_x1) < 5 and abs(crop_y1) < 5 and \
+                   abs(crop_x2 - self.frame_shape[1]) < 5 and \
+                   abs(crop_y2 - self.frame_shape[0]) < 5:
+                    self.current_crop = None
+                return resized
             return cv2.resize(frame, self.target_size)
             
         # Calculate new crop dimensions
