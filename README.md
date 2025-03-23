@@ -30,6 +30,13 @@ curl -sSL https://install.python-poetry.org | python3 -
 poetry install
 ```
 
+4. Download the YOLOv8-face model:
+
+```bash
+mkdir -p models
+curl -L https://github.com/akanametov/yolov8-face/releases/download/v0.0.0/yolov8n-face.pt -o models/yolov8n-face.pt
+```
+
 ## Usage
 
 Run the application:
@@ -38,10 +45,9 @@ Run the application:
 poetry run face_align
 ```
 
-The application will open your webcam feed and automatically start tracking and center your face, similar to how Center Stage works on Apple devices.
-
 Controls:
 - Press 'q' or 'Esc' to quit
+- Press 'r' to toggle face detection rectangle
 
 ## Configuration
 

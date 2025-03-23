@@ -1,19 +1,7 @@
 import cv2
 from ultralytics import YOLO
 from face_align.zoomedImage import ZoomedImage
-import os
-import requests
 from pathlib import Path
-
-def download_model(url, model_path):
-    """Download the model if it doesn't exist."""
-    if not os.path.exists(model_path):
-        print(f"Downloading model to {model_path}...")
-        response = requests.get(url)
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        with open(model_path, 'wb') as f:
-            f.write(response.content)
-        print("Download complete!")
 
 def process_frame_with_detection(frame, model, zoomed_image, last_box):
     # No need for classes parameter as YOLOv8-face only detects faces
@@ -26,15 +14,11 @@ def process_frame_with_detection(frame, model, zoomed_image, last_box):
         last_box = box
 
     zoomed_frame = zoomed_image.process_frame(frame, last_box)
-    return zoomed_frame, last_box
+    return zoomed_frame, last_box, box if len(result.boxes) > 0 else None
 
 def main():
     # Setup model paths and URLs
-    model_path = Path('models/yolov8n.pt')
-    model_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt"
-    
-    # Ensure model directory exists and download model if needed
-    download_model(model_url, model_path)
+    model_path = Path('models/yolov8n-face.pt')
     model = YOLO(model_path)
 
     # Initialize video capture
@@ -55,6 +39,8 @@ def main():
     
     frame_count = 0
     last_box = None
+    current_box = None
+    show_rectangle = False  # Toggle for showing face rectangle
 
     while True:
         ret, frame = cap.read()
@@ -63,19 +49,28 @@ def main():
             break
 
         # Reduce detection frequency
-        if frame_count % 5 == 0:
-            zoomed_frame, last_box = process_frame_with_detection(
+        if frame_count % 3 == 0:
+            zoomed_frame, last_box, current_box = process_frame_with_detection(
                 frame, model, zoomed_image, last_box)
             frame_count = 0
         frame_count += 1
 
         zoomed_frame = zoomed_image.process_frame(frame, last_box)
         
+        # Draw rectangle if enabled and we have a current detection
+        if show_rectangle and current_box is not None:
+            x1, y1, x2, y2 = map(int, current_box)
+            cv2.rectangle(zoomed_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(zoomed_frame, 'Face', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
         cv2.imshow('Face Align', zoomed_frame)
 
-        # Press 'q' or 'Esc' to quit
-        if cv2.waitKey(1) & 0xFF in (ord('q'), 27):
+        # Handle key presses
+        key = cv2.waitKey(1) & 0xFF
+        if key in (ord('q'), 27):  # 'q' or Esc to quit
             break
+        elif key == ord('r'):  # 'r' to toggle rectangle
+            show_rectangle = not show_rectangle
 
     cap.release()
     cv2.destroyAllWindows()

@@ -1,7 +1,7 @@
 import cv2
 
 class ZoomedImage:
-    def __init__(self, target_size, margin_percent=5, smoothing_factor=0.1, threshold=20, frame_shape=None):
+    def __init__(self, target_size, margin_percent=75, smoothing_factor=0.1, threshold=35, frame_shape=None):
         self.target_size = target_size
         self.margin_percent = margin_percent
         self.smoothing_factor = smoothing_factor
@@ -18,21 +18,23 @@ class ZoomedImage:
         box_width = x2 - x1
         box_height = y2 - y1
         
-        # Add margin
+        # Add asymmetric margins - more space below face than above
         margin_x = int(box_width * self.margin_percent / 100)
-        margin_y = int(box_height * self.margin_percent / 100)
+        margin_y_top = int(box_height * (self.margin_percent*0.8) / 100)  # Less margin above face
+        margin_y_bottom = int(box_height * (self.margin_percent*1.2) / 100)  # More margin below face
         
         # Calculate initial crop dimensions
         crop_width = box_width + 2 * margin_x
-        crop_height = box_height + 2 * margin_y
+        crop_height = box_height + margin_y_top + margin_y_bottom
         
-        return crop_width, crop_height
+        return crop_width, crop_height, margin_y_top, margin_y_bottom
     
     
     def calculate_crop_dimensions(self, box):
         x1, y1, x2, y2 = map(int, box)
+        box_height = y2 - y1
         
-        crop_width, crop_height = self.calculate_initial_crop_dimensions(x1, y1, x2, y2)
+        crop_width, crop_height, margin_y_top, margin_y_bottom = self.calculate_initial_crop_dimensions(x1, y1, x2, y2)
         
         # Adjust dimensions to match target aspect ratio
         target_aspect = self.get_target_aspect()
@@ -42,13 +44,15 @@ class ZoomedImage:
         else:
             crop_width = int(crop_height * target_aspect)
             
-        # Calculate crop coordinates
+        # Calculate crop coordinates with asymmetric vertical positioning
         center_x = (x1 + x2) // 2
-        center_y = (y1 + y2) // 2
+        # Position face higher in frame by adjusting vertical center
+        center_y = (y1 + y2) // 2 - int(box_height * 0.2)  # Shift up by 20% of face height
+        
         crop_x1 = max(0, center_x - crop_width // 2)
-        crop_y1 = max(0, center_y - crop_height // 2)
+        crop_y1 = max(0, center_y - margin_y_top)
         crop_x2 = min(self.frame_shape[1], center_x + crop_width // 2)
-        crop_y2 = min(self.frame_shape[0], center_y + crop_height // 2)
+        crop_y2 = min(self.frame_shape[0], center_y + crop_height - margin_y_top)
         
         # Handle edge cases
         if crop_x1 == 0:
